@@ -1,0 +1,100 @@
+name: Build, Release and Publish Python package to PyPI or TestPyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      pypienv:
+        description: 'PyPi Environment'
+        required: true
+        default: 'Disabled'
+        type: choice
+        options:
+        - Disabled
+        - TestPyPi
+        - PyPi
+
+jobs:
+  build:
+    name: Build distribution package
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.8"
+    - name: Install pypa/build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
+    - name: Update README.md for TestPyPi
+      if: inputs.pypienv == 'TestPyPi'
+      run: |
+        sed -i "s+pip install doom3-bfg-profile+pip install -i https://test.pypi.org/simple/ doom3-bfg-profile+g" README.md
+        sed -i "s+](src/+](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/src/+g" README.md
+    - name: Build a binary wheel and a source tarball
+      run: python3 -m build
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v5
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Create a draft release
+      if: startsWith(github.ref, 'refs/tags/')
+      env: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        whl_name=`ls dist/*.whl | awk -F'/' '{print $NF}'`
+        gh release create ${{ github.ref_name }} --generate-notes --verify-tag --draft
+        gh release upload ${{ github.ref_name }} 'dist/$whl_name#$whl_name'
+
+  publish-to-pypi:
+    name: Publish Python distribution package to PyPI
+    if: inputs.pypienv == 'PyPi' && startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    needs:
+    - build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/doom3-bfg-profile  # Replace <package-name> with your PyPI project name
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v6
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish distribution package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+
+  publish-to-testpypi:
+    name: Publish Python distribution package to TestPyPI
+    if: inputs.pypienv == 'TestPyPi'
+    needs:
+    - build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/doom3-bfg-profile
+
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v6
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish distribution package to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/

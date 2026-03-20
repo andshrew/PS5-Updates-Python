@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ps5_updates"
+version = "0.0.4"
+description = "A package for accessing PS5 title update information"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+  { name = "andshrew", email = "7409326+andshrew@users.noreply.github.com" }
+]
+dependencies = [
+  "requests>=2.31",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+# Dev / optional dependencies. Install with: pip install -e ".[test]"
+[project.optional-dependencies]
+test = [
+  "pytest>=7.0",
+  "pytest-cov>=4.0"
+]
+
+[tool.hatch.build]
+sources = ["."]
+
+[tool.hatch.build.targets.wheel]
+packages = ["ps5_updates"]
+
+[tool.hatch.build.targets.sdist]
+# Include the source directory and metadata files
+# "tests/ps5_updates"
+include = [
+  "ps5_updates",
+  "README.md"
+]
+
+# Example pytest configuration stored in pyproject.toml
+[tool.pytest.ini_options]
+pythonpath = ["."]
+minversion = "7.0"
+#addopts = "-q -ra --cov=ps5_updates"
+addopts = "-ra"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+filterwarnings = [
+  "error::DeprecationWarning"
+]
+log_cli = true
+log_cli_level = "debug"
+log_cli_format = "[%(asctime)s %(filename)s->%(funcName)s():%(lineno)s]%(levelname)s: %(message)s"
+
+[project.urls]
+"Homepage" = "https://github.com/andshrew/PS5-Updates-Python"
+"Repository" = "https://github.com/andshrew/PS5-Updates-Python.git"
+"GitHub" = "https://github.com/andshrew/PS5-Updates-Python"
+"Issues" = "https://github.com/andshrew/PS5-Updates-Python/issues"
+"Changelog" = "https://github.com/andshrew/PS5-Updates-Python/releases"
