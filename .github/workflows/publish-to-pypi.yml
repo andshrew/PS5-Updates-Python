@@ -13,6 +13,9 @@ on:
         - TestPyPi
         - PyPi
 
+permissions:
+  contents: write   # Required to create a GH release
+
 jobs:
   build:
     name: Build distribution package
@@ -35,7 +38,7 @@ jobs:
     - name: Update README.md for TestPyPi
       if: inputs.pypienv == 'TestPyPi'
       run: |
-        sed -i "s+pip install doom3-bfg-profile+pip install -i https://test.pypi.org/simple/ doom3-bfg-profile+g" README.md
+        sed -i "s+pip install ps5-updates+pip install -i https://test.pypi.org/simple/ ps5-updates+g" README.md
         sed -i "s+](src/+](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/src/+g" README.md
     - name: Build a binary wheel and a source tarball
       run: python3 -m build
@@ -51,7 +54,7 @@ jobs:
       run: |
         whl_name=`ls dist/*.whl | awk -F'/' '{print $NF}'`
         gh release create ${{ github.ref_name }} --generate-notes --verify-tag --draft
-        gh release upload ${{ github.ref_name }} 'dist/$whl_name#$whl_name'
+        gh release upload ${{ github.ref_name }} dist/$whl_name#$whl_name
 
   publish-to-pypi:
     name: Publish Python distribution package to PyPI
@@ -61,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/doom3-bfg-profile  # Replace <package-name> with your PyPI project name
+      url: https://pypi.org/p/ps5-updates  # Replace <package-name> with your PyPI project name
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
@@ -83,7 +86,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/doom3-bfg-profile
+      url: https://test.pypi.org/p/ps5-updates
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
