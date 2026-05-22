@@ -35,11 +35,18 @@ jobs:
         pip install
         build
         --user
+    - name: Generate variables
+      run: |
+        echo "SHORT_SHA=$(git rev-parse --short $GITHUB_SHA)" >> "$GITHUB_ENV"
     - name: Update README.md for TestPyPi
       if: inputs.pypienv == 'TestPyPi'
       run: |
         sed -i "s+pip install ps5-updates+pip install -i https://test.pypi.org/simple/ ps5-updates+g" README.md
         sed -i "s+](src/+](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/src/+g" README.md
+    - name: Update demo.py for release
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        sed -i "s+release_version = None+release_version = '(${{ github.ref_name }}/${{ env.SHORT_SHA }})'+g" src/demo.py
     - name: Build a binary wheel and a source tarball
       run: python3 -m build
     - name: Store the distribution packages
@@ -55,6 +62,7 @@ jobs:
         whl_name=`ls dist/*.whl | awk -F'/' '{print $NF}'`
         gh release create ${{ github.ref_name }} --generate-notes --verify-tag --draft
         gh release upload ${{ github.ref_name }} dist/$whl_name#$whl_name
+        gh release upload ${{ github.ref_name }} src/demo.py#$demo.py
 
   publish-to-pypi:
     name: Publish Python distribution package to PyPI
