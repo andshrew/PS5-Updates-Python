@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ps5_updates"
-version = "0.0.4"
+version = "0.9.0"
 description = "A package for accessing PS5 title update information"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -29,7 +29,7 @@ test = [
 ]
 
 [tool.hatch.build]
-sources = ["."]
+sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["ps5_updates"]
@@ -38,13 +38,13 @@ packages = ["ps5_updates"]
 # Include the source directory and metadata files
 # "tests/ps5_updates"
 include = [
-  "ps5_updates",
+  "src/ps5_updates",
   "README.md"
 ]
 
 # Example pytest configuration stored in pyproject.toml
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["src"]
 minversion = "7.0"
 #addopts = "-q -ra --cov=ps5_updates"
 addopts = "-ra"

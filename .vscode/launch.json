@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: demo.py with XML URL",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": "-u https://gist.githubusercontent.com/andshrew/441c2183abe1f46f9d3c9dd01d5fe111/raw/db25bab7536720f4958e84f40a26478bcf192ec1/PPSA04029_00-ec290d4a-77a8-4060-888f-44335151e45b-version.xml"
+        },
+        {
+            "name": "Python Debugger: demo.py with _sc.pkg URL",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": "-u https://sgst.prod.dl.playstation.net/sgst/prod/00/PPSA06016_00/app/info/195/f_9a5e8c636d31dddfa4db0888232473d549ba6469ba0d62b6127cf538fc62f354/EP9000-PPSA06016_00-TESTAMENT0000000_sc.pkg"
+        }
+    ]
+}
