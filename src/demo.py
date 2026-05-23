@@ -93,7 +93,7 @@ def print_update(update: ps5up.ContentPackage, skip_features: bool = False):
             print(f'  VRR:          True + 120hz VRR mode')
         else:
             print(f'  VRR:          {update.pkg.param.supports_vrr}')
-        print(f'  Power Saver:  {update.pkg.param.supports_hfr}')
+        print(f'  Power Saver:  {update.pkg.param.supports_power_saver}')
         if update.pkg.param.supports_psvr2_required:
             print(f'  PSVR2:        Required')
         else:
@@ -102,7 +102,7 @@ def print_update(update: ps5up.ContentPackage, skip_features: bool = False):
         if update.pkg.param.pssr_version is not None:
             print(f'  PSSR Version: {update.pkg.param.pssr_version}')
         print(f'Attribute bits:')
-        for i in range(1,4):
+        for i in range(1,5):
             if i == 1:
                 var_name = 'attribute_set_bits'
             else:
