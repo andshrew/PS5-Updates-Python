@@ -127,7 +127,7 @@ class PKG_Param:
         self.required_system_version = self._format_hex_version(self.get_property('requiredSystemSoftwareVersion'))
         self.sdk_version = self._format_hex_version(self.get_property('sdkVersion'))
         # Parse the attribute properties
-        for i in range(1,4):
+        for i in range(1,5):
             if i == 1:
                 var_name = f'attribute'
             else:
