@@ -43,6 +43,12 @@ jobs:
       run: |
         sed -i "s+pip install ps5-updates+pip install -i https://test.pypi.org/simple/ ps5-updates+g" README.md
         sed -i "s+](src/+](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/src/+g" README.md
+        sed -i "s+https://github.com/andshrew/PS4-Updates-Python+https://test.pypi.org/project/ps4-updates/+g" README.md
+    - name: Update README.md for PyPi
+      if: inputs.pypienv == 'PyPi'
+      run: |
+        sed -i "s+](src/+](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/src/+g" README.md
+        sed -i "s+https://github.com/andshrew/PS4-Updates-Python+https://pypi.org/project/ps4-updates/+g" README.md
     - name: Update demo.py for release
       if: startsWith(github.ref, 'refs/tags/')
       run: |
