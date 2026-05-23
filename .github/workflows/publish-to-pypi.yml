@@ -62,7 +62,7 @@ jobs:
         whl_name=`ls dist/*.whl | awk -F'/' '{print $NF}'`
         gh release create ${{ github.ref_name }} --generate-notes --verify-tag --draft
         gh release upload ${{ github.ref_name }} dist/$whl_name#$whl_name
-        gh release upload ${{ github.ref_name }} src/demo.py#$demo.py
+        gh release upload ${{ github.ref_name }} src/demo.py#demo.py
 
   publish-to-pypi:
     name: Publish Python distribution package to PyPI
