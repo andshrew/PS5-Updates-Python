@@ -29,6 +29,13 @@ from ps5_updates import title as ps5up
 
 GITHUB_URL = 'https://github.com/andshrew/PS5-Updates-Python'
 
+class TermANSIFormat:
+    bold = '\x1b[1m'
+    underline = '\x1b[4m'
+    blink = '\x1b[5m'
+    reverse = '\x1b[7m'
+    reset = '\x1b[0m'
+
 def get_update(url: str, from_pkg: bool=False):
     # PS5 title update XML files are hosted on a server using certificates
     # issued from an internal Sony CA. This disables warnings that we
@@ -45,11 +52,12 @@ def get_update(url: str, from_pkg: bool=False):
         return
     update.latest.get_package()
 
-    print(f'Title Id:    {update.title_id}')
-    print(f'Content Id:  {update.content_id}')
-    print(f'Name:        {update.latest.pkg.param.name}')
-    print(f'URL:         {update.update_url}')
-    print(f'Import Date: {update.import_date}')
+    fmt = TermANSIFormat()
+    print(f'{fmt.bold}Title Id:{fmt.reset}    {update.title_id}')
+    print(f'{fmt.bold}Content Id:{fmt.reset}  {update.content_id}')
+    print(f'{fmt.bold}Name:{fmt.reset}        {update.latest.pkg.param.name}')
+    print(f'{fmt.bold}URL:{fmt.reset}         {update.update_url}')
+    print(f'{fmt.bold}Import Date:{fmt.reset} {update.import_date}')
     print(f'')
     print_update(update.latest)
 
@@ -64,9 +72,9 @@ def get_update(url: str, from_pkg: bool=False):
         if response.lower() == 'y':
             for ac in update.additional_content:
                 ac.latest.get_package()
-                print(f'Content Id:  {ac.content_id}')
-                print(f'Name:        {ac.latest.pkg.param.name}')
-                print(f'Import Date: {ac.import_date}')
+                print(f'{fmt.bold}Content Id:{fmt.reset}  {ac.content_id}')
+                print(f'{fmt.bold}Name:{fmt.reset}        {ac.latest.pkg.param.name}')
+                print(f'{fmt.bold}Import Date:{fmt.reset} {ac.import_date}')
                 print(f'')
                 print_update(ac.latest, skip_features=True)
                 for package in ac.packages[1:]:
@@ -74,41 +82,42 @@ def get_update(url: str, from_pkg: bool=False):
                     print_update(package, skip_features=True)
 
 def print_update(update: ps5up.ContentPackage, skip_features: bool = False):
-    print(f'Version:        {update.version}')
-    print(f'Creation Date:  {update.pkg.param.creation_date}')
-    print(f'System Version: {update.system_version}')
-    print(f'Size:           {update.update_size}')
+    fmt = TermANSIFormat()
+    print(f'  {fmt.bold}Version:{fmt.reset}        {update.version}')
     if update.selective and len(update.distro_entitlements) > 0:
-        print('This is a pre-release update only available for accounts with the following entitlements:')
-        print(f'  {" ".join(update.distro_entitlements)}')
+        print(f'  {fmt.underline}{fmt.bold}This is a pre-release update only available for accounts with the following entitlements:{fmt.reset}')
+        print(f'    {" ".join(update.distro_entitlements)}')
     if update.selective and update.distro_predownload_install_date is not None:
-        print(f'This is a pre-download update which will be installable: {str(update.distro_predownload_install_date)}')
+        print(f'  {fmt.underline}{fmt.bold}This is a pre-download update which will be installable: {str(update.distro_predownload_install_date)}{fmt.reset}')
+    print(f'  {fmt.bold}Creation Date:{fmt.reset}  {update.pkg.param.creation_date}')
+    print(f'  {fmt.bold}System Version:{fmt.reset} {update.system_version}')
+    print(f'  {fmt.bold}Size:{fmt.reset}           {update.update_size}')
     if not skip_features:
-        print(f'Features supported:')
-        print(f'  HDR:          {update.pkg.param.supports_hdr}')
-        print(f'  120hz:        {update.pkg.param.supports_hfr}')
+        print(f'  {fmt.bold}Features supported:{fmt.reset}')
+        print(f'    {fmt.bold}HDR:{fmt.reset}          {update.pkg.param.supports_hdr}')
+        print(f'    {fmt.bold}120hz:{fmt.reset}        {update.pkg.param.supports_hfr}')
         if update.pkg.param.supports_vrr_disabled:
-            print(f'  VRR:          Force Disabled')
+            print(f'    {fmt.bold}VRR:{fmt.reset}          Force Disabled')
         elif update.pkg.param.supports_vrr_hfr:
-            print(f'  VRR:          True + 120hz VRR mode')
+            print(f'    {fmt.bold}VRR:{fmt.reset}          True + 120hz VRR mode')
         else:
-            print(f'  VRR:          {update.pkg.param.supports_vrr}')
-        print(f'  Power Saver:  {update.pkg.param.supports_power_saver}')
+            print(f'    {fmt.bold}VRR:{fmt.reset}          {update.pkg.param.supports_vrr}')
+        print(f'    {fmt.bold}Power Saver:{fmt.reset}  {update.pkg.param.supports_power_saver}')
         if update.pkg.param.supports_psvr2_required:
-            print(f'  PSVR2:        Required')
+            print(f'    {fmt.bold}PSVR2:{fmt.reset}        Required')
         else:
-            print(f'  PSVR2:        {update.pkg.param.supports_psvr2_optional}')
-        print(f'  PS5 Pro:      {update.pkg.param.supports_ps5_pro}')
+            print(f'    {fmt.bold}PSVR2:{fmt.reset}        {update.pkg.param.supports_psvr2_optional}')
+        print(f'    {fmt.bold}PS5 Pro:{fmt.reset}      {update.pkg.param.supports_ps5_pro}')
         if update.pkg.param.pssr_version is not None:
-            print(f'  PSSR Version: {update.pkg.param.pssr_version}')
-        print(f'Attribute bits:')
+            print(f'    {fmt.bold}PSSR Version:{fmt.reset} {update.pkg.param.pssr_version}')
+        print(f'  {fmt.bold}Attribute bits:{fmt.reset}')
         for i in range(1,5):
             if i == 1:
                 var_name = 'attribute_set_bits'
             else:
                 var_name = f'attribute{i}_set_bits'
             if len(getattr(update.pkg.param, var_name)) > 0:
-                print(f'  {i}: {getattr(update.pkg.param, var_name)}')
+                print(f'    {fmt.bold}{i}{fmt.reset}: {getattr(update.pkg.param, var_name)}')
     print(f'')
 
 if __name__ == "__main__":
