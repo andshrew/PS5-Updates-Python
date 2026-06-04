@@ -69,9 +69,9 @@ def get_update(url: str, from_pkg: bool=False):
                 print(f'Import Date: {ac.import_date}')
                 print(f'')
                 print_update(ac.latest, skip_features=True)
-            for package in update.packages[1:]:
-                package.get_package()
-                print_update(package, skip_features=True)
+                for package in ac.packages[1:]:
+                    package.get_package()
+                    print_update(package, skip_features=True)
 
 def print_update(update: ps5up.ContentPackage, skip_features: bool = False):
     print(f'Version:        {update.version}')
