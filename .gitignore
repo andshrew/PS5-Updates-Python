@@ -132,3 +132,4 @@ dmypy.json
 /*.json
 discord/
 data_dump/
+saved_update_files/
