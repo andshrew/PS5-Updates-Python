@@ -202,14 +202,14 @@ def save_metadata(pkg: ps5up.PKG, update: ps5up.Ps5TitleUpdate = None, content: 
     if update.__class__ == ps5up.Ps5TitleUpdate:
         metadata['update_url'] = update.update_url
         ps5up.save_data_to_file(update.update_xml, titleid=title_id, content_id=content_id, version=version,
-                                url=update.update_url)
+                                url=update.update_url, base_path='saved_update_files')
     if metadata.get('update_url') is None:
         metadata['update_url'] = pkg.param.version_url
 
     if content.__class__ == ps5up.ContentPackage:
         metadata['manifest_url'] = content.manifest_url
         ps5up.save_data_to_file(content.manifest_json, titleid=title_id, content_id=content_id, version=version,
-                                url=content.manifest_url)
+                                url=content.manifest_url, base_path='saved_update_files')
     if metadata.get('manifest_url') is None:
         if pkg.url.geturl()[-7:].lower() == '_sc.pkg':
             metadata['manifest_url'] = pkg.url.geturl().replace('_sc.pkg', '.json')

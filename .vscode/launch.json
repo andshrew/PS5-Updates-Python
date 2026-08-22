@@ -13,6 +13,14 @@
             "args": "-u https://gist.githubusercontent.com/andshrew/441c2183abe1f46f9d3c9dd01d5fe111/raw/db25bab7536720f4958e84f40a26478bcf192ec1/PPSA04029_00-ec290d4a-77a8-4060-888f-44335151e45b-version.xml"
         },
         {
+            "name": "Python Debugger: demo.py save files",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": "--save -u https://gist.githubusercontent.com/andshrew/441c2183abe1f46f9d3c9dd01d5fe111/raw/db25bab7536720f4958e84f40a26478bcf192ec1/PPSA04029_00-ec290d4a-77a8-4060-888f-44335151e45b-version.xml"
+        },
+        {
             "name": "Python Debugger: demo.py with _sc.pkg URL",
             "type": "debugpy",
             "request": "launch",
