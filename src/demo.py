@@ -58,6 +58,8 @@ def get_update(url: str, from_pkg: bool=False, save_files=False, save_automatic=
     print_update(update.latest)
     if save_files:
         if save_pkg_files(pkg=update.latest.pkg, automatic=save_automatic):
+            for item in update.latest.flex_content:
+                save_pkg_files(pkg=item.pkg, automatic=True)
             save_metadata(update=update, content=update.latest, pkg=update.latest.pkg)
 
     for package in update.packages[1:]:
@@ -65,6 +67,8 @@ def get_update(url: str, from_pkg: bool=False, save_files=False, save_automatic=
         print_update(package)
         if save_files:
             if save_pkg_files(package.pkg, automatic=save_automatic):
+                for item in package.flex_content:
+                    save_pkg_files(pkg=item.pkg, automatic=True)
                 save_metadata(update=update, content=package, pkg=package.pkg)
     
     if len(update.additional_content) > 0:
@@ -83,6 +87,8 @@ def get_update(url: str, from_pkg: bool=False, save_files=False, save_automatic=
                     print_update(package, skip_features=True)
                     if save_files:
                         if save_pkg_files(package.pkg, automatic=save_automatic):
+                            for item in package.flex_content:
+                                save_pkg_files(pkg=item.pkg, automatic=True)
                             save_metadata(update=update, content=package, pkg=package.pkg)
 
 def print_update(update: ps5up.ContentPackage, skip_features: bool = False):
@@ -122,6 +128,17 @@ def print_update(update: ps5up.ContentPackage, skip_features: bool = False):
                 var_name = f'attribute{i}_set_bits'
             if len(getattr(update.pkg.param, var_name)) > 0:
                 print(f'    {fmt.bold}{i}{fmt.reset}: {getattr(update.pkg.param, var_name)}')
+    if len(update.flex_content) > 0:
+        print(f'  {fmt.bold}Additional flex content packages:{fmt.reset}')
+        for idx, item in enumerate(update.flex_content):
+            if idx > 0:
+                print('')
+            print(f'    {fmt.bold}Content Id:{fmt.reset}     {item.content_id}')
+            print(f'    {fmt.bold}URL:{fmt.reset}            {item.version_url}')
+            print(f'    {fmt.bold}Version:{fmt.reset}        {item.version}')
+            print(f'    {fmt.bold}Creation Date:{fmt.reset}  {item.pkg.param.creation_date}')
+            print(f'    {fmt.bold}Size:{fmt.reset}           {item.update_size}')
+            print(f'    {fmt.bold}Max Size:{fmt.reset}       {item.update_max_size}')
     print(f'')
 
 def get_specifc_update(url: str, save_files=False, save_automatic=False):
