@@ -123,6 +123,23 @@ def test_PKG_save_specific_from_file_sc():
         path = Path().joinpath(base_path, pkg.param.title_id,
                                pkg.param.content_version, file)
         assert os.path.exists(path)
+
+def test_PKG_flexcontent_save_all_from_url():
+    url = 'https://objectstore-publishers-cod.prod.demonware.net/cod-shared_fgc/activision/PPSA37414/01.001.000/01.013.000/subcontainer.dat'
+    pkg = PKG.from_url(url)
+    base_path = Path().joinpath('data_dump', 'test_PKG_flexcontent_save_all_from_url')
+    pkg.save_files(files=['all'], save_method=save_data_to_file, titleid=pkg.param.title_id, 
+                   version=pkg.param.content_version, base_path=base_path,
+                   write_bytes=True)
+    files = [
+        '1', '512', 'param.json'
+    ]
+    for file in files:
+        path = Path().joinpath(base_path, pkg.param.title_id,
+                               pkg.param.content_version, file)
+        assert os.path.exists(path)
+    assert pkg.param.content_version == '01.013.000'
+    assert pkg.param.content_id == 'EP0002-PPSA37414_00-PSRSVD0010000001'
     
 # PKG_Param Tests
 def test_PKG_Param_create_from_bytes():

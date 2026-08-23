@@ -67,6 +67,14 @@ def test_ContentPackage_create_from_xml_selective_predownload():
     assert package.distro_predownloads[2]['percentage'] == '100'
     assert str(package.distro_predownload_install_date) == '2026-04-30 16:00:00'
 
+def test_ContentPackage_create_from_xml_flexcontent():
+    xml_string = '<package content_ver="01.001.000" delta_url="http://gst.prod.dl.playstation.net/gst/prod/00/PPSA37414_00/app/pkg/2/f_1e4d2bcc9b27cbe6243fdf6c2d687a38a4af15baaf8aa9e7d88c0e96a0b17471/EP0002-PPSA37414_00-CODMW4BETA000001-DP.pkg" digest="075cca26ebb3ab61abd03541eb7f0273c9f6e22566e2399022c08f9b2426dc59" mandatory="false" manifest_url="https://sgst.prod.dl.playstation.net/sgst/prod/00/PPSA37414_00/app/info/2/f_a557190bf439d572b971eaf34afb7e41b715851d3f20e5b3f860eaefc7241fc4/EP0002-PPSA37414_00-CODMW4BETA000001.json" metadata_ver="2" pfs_revision="2" system_ver="325058567"/>'
+    package = ContentPackage.from_xml(xml_string)
+    package.get_package()
+    assert package.__class__ is ContentPackage
+    assert len(package.flex_content) == 1
+    assert package.flex_content[0].__class__ is FlexContent
+
 def test_ContentPackage_parse_system_version():
     def get_system_versions(version_str):
         version_hex_str = version_str.replace('.', '')

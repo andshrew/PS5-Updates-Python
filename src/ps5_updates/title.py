@@ -28,9 +28,129 @@ from pathlib import Path
 import struct
 from urllib.parse import urlparse
 import xml.etree.ElementTree as xml
+from dataclasses import dataclass, field
+from typing import List, Optional, Union, Any, Dict
 from .pkg import *
 
 import requests
+
+@dataclass
+class FlexContent:
+    """
+    Creates an object to store data from a `flexContent` update found
+    in the `ContentPackage` manifest JSON file.
+
+    Each FlexContent represents a single update, with the `PKG` object accessible
+    from the `pkg` property after calling `get_update()`.
+
+    These update packages are unique in that they can be updated indepedently
+    of their parent `ContentPackage`, which is effectively a means of pushing smaller
+    game data updates quickly without having to submit an entire game update.
+    """
+    content_id: str
+    version_url: str
+    base_url: str 
+    contents_json: str
+    version: Optional[str] = None
+    version_json: Optional[str] = None
+    manifest_url: Optional[str] = None
+    manifest_json: Optional[str] = None
+    update_size: Optional[str] = None
+    update_max_size: Optional[str] = None
+    pkg_url: Optional[str] = None
+    pkg: Optional[PKG] = None
+
+    @classmethod
+    def from_json(cls, json_data: Dict[str, Any]) -> 'FlexContent':
+        content_id = find_key(json_data, 'contentId')
+        version_url = find_key(json_data, 'versionJsonUri')
+        update_max_size = find_key(json_data, 'maxFlexContentSizeInGib')
+        if update_max_size is not None:
+            update_max_size = f'{update_max_size} GiB'
+        # In current examples only version_url is a complete URL, with the other
+        # URLs being partial paths. Create a base_url to use with these when a
+        # complete URL isn't provided
+        base_url = version_url.rsplit('/', 1)[0]
+        return cls(content_id=content_id,
+                   version_url=version_url,
+                   base_url=base_url,
+                   contents_json=json.dumps(json_data),
+                   update_max_size=update_max_size)
+
+    def get_update(self):
+        self._parse_version_json()
+        self._parse_manifest_json()
+
+    def _parse_version_json(self):
+        url = self.version_url
+        logger.debug(f'Requesting FlexContent version URL: {url}')
+        response = invoke_web_request(url, verify_https=False)
+        if response == None:
+            logger.error('Invalid response from FlexContent version URL')
+            return
+        try:
+            version_json = response.text
+            version_data = json.loads(version_json)
+        except json.JSONDecodeError as ex:
+            logger.error(f'Unable to parse FlexContent version JSON: {ex.args}')
+            return
+        content_id = find_key(version_data, 'contentId')
+        if content_id != self.content_id:
+            logger.warning(f'ContentId in the version JSON {content_id} does not match the existing value {self.content_id}')
+        self.version = find_key(version_data, 'contentVersion')
+        self.manifest_url = self._build_url(find_key(version_data, 'contentManifestUrl'), self.base_url)
+        self.version_json = version_json
+
+    def _parse_manifest_json(self):
+        url = self.manifest_url
+        logger.debug(f'Requesting FlexContent manifest URL: {url}')
+        response = invoke_web_request(url, verify_https=False)
+        if response == None:
+            logger.error('Invalid response from FlexContent manifest URL')
+            return
+        try:
+            manifest_json = response.text
+            manifest_data = json.loads(manifest_json)
+        except json.JSONDecodeError as ex:
+            logger.error(f'Unable to parse FlexContent manifest JSON: {ex.args}')
+            return
+        content_id = find_key(manifest_data, 'contentId')
+        if content_id != self.content_id:
+            logger.warning(f'ContentId in the manifest JSON {content_id} does not match the existing value {self.content_id}')
+        self.manifest_json = manifest_json
+        update_size = find_key(manifest_data, 'originalFileSize')
+        if update_size is not None:
+            self.update_size = bytes_to_formatted_filesize(update_size)
+        for item in find_key(manifest_data, 'pkgExtents'):
+            # The individual parts of the package are listed seperately
+            # within this key, for now just capture the part which contains
+            # the parsable metadata like a regular updates `_sc.pkg` file
+            if item['type'] == 'subcontainer':
+                self.pkg_url = self._build_url(item['url'], self.base_url)
+                if self.pkg_url is None or self.pkg_url == '':
+                    logger.warning(f'No URL in this subcontainer: {json.dumps(item)}')
+                    continue
+                pkg = PKG.from_url(self.pkg_url)
+                if pkg is not None:
+                    self.pkg = pkg
+                    break
+
+    def _build_url(self, url, base_url):
+        """
+        Internal helper function for assembling URLs, either returns
+        a full `url` or returns a new URL combining `url` and `base_url`
+        """
+        if url is None:
+            return url
+        parsed = urlparse(url)
+        if (parsed.scheme == 'https' or parsed.scheme == 'http'):
+            # This is a complete URL
+            return url
+        else:
+            separator = '/'
+            if base_url[-1] == '/':
+                separator = ''
+            return f'{base_url}{separator}{url}'     
 
 @dataclass
 class ContentPackage:
@@ -57,6 +177,7 @@ class ContentPackage:
     distro_entitlements: Optional[list] = field(default_factory=list)
     distro_predownloads: Optional[list] = field(default_factory=list)
     distro_predownload_install_date: Optional[datetime] = None
+    flex_content: List[FlexContent] = field(default_factory=list)
 
     def __post_init__(self):
         self._format_system_version()
@@ -129,6 +250,7 @@ class ContentPackage:
         """
         self._parse_manifest_json()
         self._get_update_metadata()
+        self._get_flexcontent_metadata()
 
     def _format_system_version(self):
         """
@@ -174,6 +296,13 @@ class ContentPackage:
         self.manifest_exists = True
         self.pkg_url = package_piece['url']
         self.manifest_json = response.text
+        # Locate any flexContent updates
+        flex_content = find_key(manifest, 'flexContent', '.')
+        if flex_content is not None:
+            for item in find_key(flex_content, 'contents'):
+                flex_pkg = FlexContent.from_json(item)
+                if flex_pkg is not None:
+                    self.flex_content.append(flex_pkg)
 
     def _get_update_metadata(self):
         """
@@ -186,6 +315,12 @@ class ContentPackage:
                 self.pkg = pkg
         else:
             logger.error(f'pkg_url is not valid: {self.pkg_url}')
+
+    def _get_flexcontent_metadata(self):
+        if len(self.flex_content) > 0:
+            logger.debug(f'ContentPackage contains {len(self.flex_content)} FlexContent packages')
+            for item in self.flex_content:
+                item.get_update()
 
 @dataclass
 class AdditionalContent:
